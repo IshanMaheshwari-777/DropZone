@@ -32,7 +32,9 @@ export const createFoundItem = async (req, res) => {
 
 export const getAllFoundItems= async (req,res)=>{
     try{
-        const foundItems=await FoundItem.find({status:"ACTIVE"}).populate('postedBy','name email')
+        const {page=1,limit=10,category='All'}=req.query
+        const skip=(page-1)*limit
+        const foundItems=await FoundItem.find({status:"ACTIVE",category:category==='All'?{}:{category}}).populate('postedBy','name email').skip(parseInt(skip)).limit(parseInt(limit))
         return res.status(200).json({foundItems})
     }
     catch(err){
@@ -44,7 +46,9 @@ export const getAllFoundItems= async (req,res)=>{
 export const getFoundItemById= async (req,res)=>{
     try{
         const {id}=req.params
-        const foundItem=await FoundItem.findById(id).populate('postedBy','name email')
+        const {page=1,limit=10,category='All'}=req.query
+        const skip=(page-1)*limit
+        const foundItem=await FoundItem.findById({id,category:category==='All'?{}:{category}}).populate('postedBy','name email').skip(parseInt(skip)).limit(parseInt(limit))
         if (!foundItem){
             return res.status(404).json({message:"Found Item not found"})
         }

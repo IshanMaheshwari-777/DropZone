@@ -28,7 +28,9 @@ export const createLostItem=async(req,res)=>{
 
 export const getAllLostItems=async (req,res)=>{
     try{
-        const lostItems=await LostItem.find({status:'ACTIVE'}).populate('postedBy','name email')
+        const {page=1,limit=10,category='All'}=req.query
+        const skip=(page-1)*limit
+        const lostItems=await LostItem.find({status:'ACTIVE',category:category==='All'?{}:{category}}).populate('postedBy','name email').skip(parseInt(skip)).limit(parseInt(limit))
         return res.status(200).json({lostItems})
     }
     catch(err){
@@ -39,7 +41,9 @@ export const getAllLostItems=async (req,res)=>{
 export const getLostItemById=async (req,res)=>{
     try {
         const { id } = req.params
-        const lostItem = await LostItem.findById(id).populate('postedBy', 'name email')
+        const {page=1,limit=10,category='All'}=req.query
+        const skip=(page-1)*limit
+        const lostItem = await LostItem.findById({id,category:category==='All'?{}:{category}}).populate('postedBy', 'name email').skip(parseInt(skip)).limit(parseInt(limit))
         if (!lostItem) {
             return res.status(404).json({ message: 'Lost Item not found' })
         }
@@ -67,7 +71,9 @@ export const changeVisibilityLostItem=async (req,res)=>{
 export const myLostItems= async (req,res)=>{
     try {
         const { id } = req.params
-        const lostItem = await LostItem.findById(id).populate('postedBy', 'name email')
+        const {page=1,limit=10,category='All'}=req.query
+        const skip=(page-1)*limit
+        const lostItem = await LostItem.findById({id,category:category==='All'?{}:{category}}).populate('postedBy', 'name email').skip(parseInt(skip)).limit(parseInt(limit))
         if (!lostItem) {
             return res.status(404).json({ message: 'Lost Item not found' })
         }
