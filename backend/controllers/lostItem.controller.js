@@ -1,7 +1,20 @@
 import {LostItem}  from "../models/lostItem.model.js";
 import { AuditLog } from "../models/AuditLog.model.js";
+import fs from 'fs';
+import cloudinary from '../utils/cloudinary.js';
 export const createLostItem = async (req, res) => {
     const { title, category, location, dateLost, publicDescription, privateNotes } = req.body;
+
+    if (!req.file) {
+        res.status(400);
+        throw new Error('Image is required for lost items');
+    }
+
+    const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+        folder: "dropzone/lost-items",
+    });
+
+    // fs.unlinkSync(req.file.path);
 
     const lostItem = await LostItem.create({
         postedBy: req.user._id,
@@ -11,7 +24,7 @@ export const createLostItem = async (req, res) => {
         dateLost,
         publicDescription,
         privateNotes,
-        imagePath: req.file ? `/uploads/${req.file.filename}` : null,
+        imagePath: uploadResult.secure_url,
     });
 
     await AuditLog.create({

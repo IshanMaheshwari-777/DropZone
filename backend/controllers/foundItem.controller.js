@@ -1,32 +1,41 @@
 import { FoundItem } from "../models/foundItem.model.js";
 import { AuditLog } from "../models/AuditLog.model.js";
+import fs from 'fs';
+import cloudinary from '../utils/cloudinary.js';
 export const createFoundItem = async (req, res) => {
-    const { title, category, location, dateFound, description } = req.body;
+  const { title, category, location, dateFound, description } = req.body;
 
-    if (!req.file) {
-        res.status(400);
-        throw new Error('Image is required for found items');
-    }
+  if (!req.file) {
+    return res.status(400).json({ message: "Image is required" });
+  }
 
-    const foundItem = await FoundItem.create({
-        postedBy: req.user._id,
-        title,
-        category,
-        location,
-        dateFound,
-        description,
-        imagePath: `/uploads/${req.file.filename}`,
-    });
+  // 1️⃣ Upload local file to Cloudinary
+  const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+    folder: "dropzone/found-items",
+  });
 
-    // Create Audit Log
-    await AuditLog.create({
-        entityType: 'FoundItem',
-        entityId: foundItem._id,
-        action: 'CREATE',
-        performedBy: req.user._id,
-    });
+  // 2️⃣ Delete ONLY the local temp file
+//   fs.unlinkSync(req.file.path);
 
-    res.status(201).json(foundItem);
+  // 3️⃣ Save Cloudinary URL in DB
+  const foundItem = await FoundItem.create({
+    postedBy: req.user._id,
+    title,
+    category,
+    location,
+    dateFound,
+    description,
+    imagePath: uploadResult.secure_url,
+  });
+
+  await AuditLog.create({
+    entityType: "FoundItem",
+    entityId: foundItem._id,
+    action: "CREATE",
+    performedBy: req.user._id,
+  });
+
+  res.status(201).json(foundItem);
 };
 
 export const getFoundItems = async (req, res) => {
@@ -96,28 +105,28 @@ export const claimFoundItem = async (req, res) => {
     res.json(foundItem);
 };
 
-export const changeVisibilityFoundItem= async (req,res)=>{
-    try{
+export const changeVisibilityFoundItem = async (req, res) => {
+    try {
 
-        const {id,status}=req.params
-        const foundItem=await FoundItem.findById(id)
-        if (!foundItem){
-            return res.status(404).json({message:"Found Item not found"})
+        const { id, status } = req.params
+        const foundItem = await FoundItem.findById(id)
+        if (!foundItem) {
+            return res.status(404).json({ message: "Found Item not found" })
         }
-        foundItem.status=status
-        const auditLog=new AuditLog({
-            entityType:"FoundItem",
-            entityId:foundItem._id,
-            action:status=="INACTIVE" ? "DEACTIVATE" : "ACTIVATE",
-            performedBy:foundItem.postedBy
+        foundItem.status = status
+        const auditLog = new AuditLog({
+            entityType: "FoundItem",
+            entityId: foundItem._id,
+            action: status == "INACTIVE" ? "DEACTIVATE" : "ACTIVATE",
+            performedBy: foundItem.postedBy
         })
         await auditLog.save()
         await foundItem.save()
-        return res.status(200).json({message:"Found Item status updated successfully"})
+        return res.status(200).json({ message: "Found Item status updated successfully" })
     }
-    catch(err){
+    catch (err) {
         console.log("Error in changeVisibilityFoundItem:", err);
-        return res.status(500).json({message:"Server Error"})
+        return res.status(500).json({ message: "Server Error" })
     }
 }
 

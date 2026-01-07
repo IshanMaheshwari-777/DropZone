@@ -31,11 +31,11 @@ app.use(morgan('dev'));
 app.use(cors({origin:"*"}))
 app.use(express.json());
 app.use(cookieParser());
-app.use('/uploads', (req, res, next) => {
-    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    next();
-  }, express.static(path.join(__dirname, '../uploads')));
-app.use('/uploads',express.static(path.join(__dirname,'./uploads')))
+// app.use('/uploads', (req, res, next) => {
+//     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+//     next();
+//   }, express.static(path.join(__dirname, '../uploads')));
+// app.use('/uploads',express.static(path.join(__dirname,'./uploads')))
 app.use("/auth",userRoutes)
 app.use("/found",foundItemRoutes)
 app.use("/lost",lostItemRoutes)
