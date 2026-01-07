@@ -28,7 +28,7 @@ app.use((req, res, next) => {
 });
 app.use(helmet());
 app.use(morgan('dev'));
-app.use(cors({origin:"*"}))
+app.use(cors({origin:"https://drop-zone-ng8nqrut8-ishanmaheshwari-777s-projects.vercel.app/",credentials:true})); // Update with your frontend URL
 app.use(express.json());
 app.use(cookieParser());
 // app.use('/uploads', (req, res, next) => {
