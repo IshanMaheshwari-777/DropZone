@@ -15,8 +15,8 @@ DropZone is a production-ready, full-stack Lost & Found web application designed
 ## Tech Stack
 
 - **Frontend**: Next.js (App Router), Tailwind CSS, Zustand, React Hook Form, Zod, Sonner.
-- **Backend**: Node.js, Express.js, MongoDB, Mongoose, JWT, Multer.
-- **Storage**: Local image storage.
+- **Backend**: Node.js, Express.js, MongoDB, Mongoose, JWT.
+- **Storage**: Cloudinary.
 
 ## Project Structure
 
