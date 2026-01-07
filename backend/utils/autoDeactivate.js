@@ -1,4 +1,4 @@
-import { FoundItem } from "../models/foundItem.model";
+import { FoundItem } from "../models/foundItem.model.js";
 
 export const deactivateOldPosts = async () => {
   try {

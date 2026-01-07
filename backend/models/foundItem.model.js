@@ -2,54 +2,46 @@ import mongoose from "mongoose";
     
 
 const foundItemSchema=new mongoose.Schema({
-
-    postedBy:{
+    postedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Users',
-        required: true
+        required: true,
     },
-    title:{
+    title: {
         type: String,
-        required: true
+        required: true,
     },
-    category:{
+    category: {
         type: String,
-        required: true
+        required: true,
     },
-    location:{
+    location: {
         type: String,
-        required: true
+        required: true,
     },
-    dateFound:{
+    dateFound: {
         type: Date,
-        required: true
+        required: true,
     },
-    description:{
+    description: {
         type: String,
-        required: true
     },
-    imagePath:{
+    imagePath: {
         type: String,
-        required: true
+        required: true, 
     },
-    status:{
+    status: {
         type: String,
-        enum: ["ACTIVE", "INACTIVE"],
-        default: "ACTIVE"
+        enum: ['available', 'claimed'],
+        default: 'available',
     },
-    createdAt:{
+    deletedAt: {
         type: Date,
-        default: Date.now
+        default: null,
     },
-    updatedAt:{
-        type: Date,
-        default: Date.now
-    },
-    deletedAt:{
-        type: Date,
-        default: Date.now
-    }
-},{timestamps:true})
+}, {
+    timestamps: true,
+});
 
 export const FoundItem=mongoose.model('FoundItems',foundItemSchema)
 

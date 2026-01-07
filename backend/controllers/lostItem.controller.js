@@ -1,98 +1,128 @@
-import { LostItem } from "../models/lostItem.model.js";
+import {LostItem}  from "../models/lostItem.model.js";
+import { AuditLog } from "../models/AuditLog.model.js";
+export const createLostItem = async (req, res) => {
+    const { title, category, location, dateLost, publicDescription, privateNotes } = req.body;
 
-export const createLostItem=async(req,res)=>{
-    try{
-        const {postedBy,title,category,location,dateLost,publicDescription,privateNotes,}=req.body
-        if (!title||!category||!location||!dateLost||!publicDescription||!privateNotes){
-            return res.status(400).json({message:"All fields are required"})
+    const lostItem = await LostItem.create({
+        postedBy: req.user._id,
+        title,
+        category,
+        location,
+        dateLost,
+        publicDescription,
+        privateNotes,
+        imagePath: req.file ? `/uploads/${req.file.filename}` : null,
+    });
+
+    await AuditLog.create({
+        entityType: 'LostItem',
+        entityId: lostItem._id,
+        action: 'CREATE',
+        performedBy: req.user._id,
+    });
+
+    res.status(201).json(lostItem);
+};
+
+
+export const getLostItems = async (req, res) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const category = req.query.category;
+    const skip = (page - 1) * limit;
+
+    const query = { deletedAt: null, isActive: true };
+    if (category) {
+        query.category = category;
+    }
+
+    const lostItems = await LostItem.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('postedBy', 'name');
+
+    const total = await LostItem.countDocuments(query);
+
+    res.json({
+        data: lostItems,
+        meta: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+        },
+    });
+};
+
+export const getLostItemById = async (req, res) => {
+    const lostItem = await LostItem.findById(req.params.id).populate('postedBy', 'name');
+
+    if (lostItem && !lostItem.deletedAt) {
+        // Hide private notes if not owner
+        if (!req.user || lostItem.postedBy._id.toString() !== req.user._id.toString()) {
+            lostItem.privateNotes = undefined;
         }
-
-        const newLostItem=new LostItem({
-            postedBy,
-            title,
-            category,
-            location,
-            dateLost,
-            publicDescription,
-            privateNotes
-        })
-
-        await newLostItem.save()
-        return res.status(201).json({message:"Lost Item created successfully",lostItem:newLostItem})
+        res.json(lostItem);
+    } else {
+        res.status(404);
+        throw new Error('Lost item not found');
     }
-    catch(err){
-        return res.status(500).json({message:"Internal Server Error",error:err.message})
-    }
-}
+};
 
+export const deactivateLostItem = async (req, res) => {
+    const lostItem = await LostItem.findById(req.params.id);
 
-export const getAllLostItems=async (req,res)=>{
-    try{
-        const {page=1,limit=10,category='All'}=req.query
-        const skip=(page-1)*limit
-        const lostItems=await LostItem.find({status:'ACTIVE',category:category==='All'?{}:{category}}).populate('postedBy','name email').skip(parseInt(skip)).limit(parseInt(limit))
-        return res.status(200).json({lostItems})
+    if (!lostItem || lostItem.deletedAt) {
+        res.status(404);
+        throw new Error('Lost item not found');
     }
-    catch(err){
-        return res.status(500).json({message:'Internal server error',error:err.message})
-    }
-}
 
-export const getLostItemById=async (req,res)=>{
-    try {
-        const { id } = req.params
-        const {page=1,limit=10,category='All'}=req.query
-        const skip=(page-1)*limit
-        const lostItem = await LostItem.findById({id,category:category==='All'?{}:{category}}).populate('postedBy', 'name email').skip(parseInt(skip)).limit(parseInt(limit))
-        if (!lostItem) {
-            return res.status(404).json({ message: 'Lost Item not found' })
-        }
-        return res.status(200).json({ lostItem })
-    } catch (error) {
-        return res.status(500).json({ message: 'Internal server error', error: error.message })
+    if (lostItem.postedBy.toString() !== req.user._id.toString()) {
+        res.status(401);
+        throw new Error('Not authorized to update this item');
     }
-}
 
-export const changeVisibilityLostItem=async (req,res)=>{
-    try{
-        const {id,status}=req.params
-        const lostItem=await LostItem.findById(id)
-        if (!lostItem) {
-            return res.status(404).json({ message: 'Lost Item not found' })
-        }
-        lostItem.status = status
-        await lostItem.save()
-        return res.status(200).json({ message: 'Lost Item visibility updated successfully', lostItem })
-    } catch (error) {
-        return res.status(500).json({ message: 'Internal server error', error: error.message })
-    }
-}
+    lostItem.isActive = false;
+    await lostItem.save();
 
-export const myLostItems= async (req,res)=>{
-    try {
-        const { id } = req.params
-        const {page=1,limit=10,category='All'}=req.query
-        const skip=(page-1)*limit
-        const lostItem = await LostItem.findById({id,category:category==='All'?{}:{category}}).populate('postedBy', 'name email').skip(parseInt(skip)).limit(parseInt(limit))
-        if (!lostItem) {
-            return res.status(404).json({ message: 'Lost Item not found' })
-        }
-        return res.status(200).json({ lostItem })
-    } catch (error) {
-        return res.status(500).json({ message: 'Internal server error', error: error.message })
-    }
-}
+    await AuditLog.create({
+        entityType: 'LostItem',
+        entityId: lostItem._id,
+        action: 'DEACTIVATE',
+        performedBy: req.user._id,
+    });
 
-export const deleteLostItem=async (req,res)=>{
-    try {
-        const { id } = req.params
-        const lostItem = await LostItem.findById(id)
-        if (!lostItem) {
-            return res.status(404).json({ message: 'Lost Item not found' })
-        }
-        await lostItem.remove()
-        return res.status(200).json({ message: 'Lost Item deleted successfully' })
-    } catch (error) {
-        return res.status(500).json({ message: 'Internal server error', error: error.message })
+    res.json(lostItem);
+};
+
+export const getMyLostItems = async (req, res) => {
+    const lostItems = await LostItem.find({ postedBy: req.user._id, deletedAt: null })
+        .sort({ createdAt: -1 });
+    res.json(lostItems);
+};
+export const deleteLostItem = async (req, res) => {
+    const lostItem = await LostItem.findById(req.params.id);
+
+    if (!lostItem || lostItem.deletedAt) {
+        res.status(404);
+        throw new Error('Lost item not found');
     }
-}
+
+    if (lostItem.postedBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        res.status(401);
+        throw new Error('Not authorized to delete this item');
+    }
+
+    lostItem.deletedAt = Date.now();
+    await lostItem.save();
+
+    await AuditLog.create({
+        entityType: 'LostItem',
+        entityId: lostItem._id,
+        action: 'DELETE',
+        performedBy: req.user._id,
+    });
+
+    res.json({ message: 'Lost item removed' });
+};
