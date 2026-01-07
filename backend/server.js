@@ -29,7 +29,7 @@ app.use((req, res, next) => {
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(cors({
-    origin: ["https://drop-zone-beta.vercel.app/", "http://localhost:3000"],
+    origin: ["https://drop-zone-beta.vercel.app", "http://localhost:3000"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
