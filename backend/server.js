@@ -28,14 +28,15 @@ app.use((req, res, next) => {
 });
 app.use(helmet());
 app.use(morgan('dev'));
-app.use(cors({origin:"https://drop-zone-ng8nqrut8-ishanmaheshwari-777s-projects.vercel.app/",credentials:true})); // Update with your frontend URL
+app.use(cors({
+    origin: ["https://drop-zone-ng8nqrut8-ishanmaheshwari-777s-projects.vercel.app/", "http://localhost:3000"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+})); 
 app.use(express.json());
 app.use(cookieParser());
-// app.use('/uploads', (req, res, next) => {
-//     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-//     next();
-//   }, express.static(path.join(__dirname, '../uploads')));
-// app.use('/uploads',express.static(path.join(__dirname,'./uploads')))
+
 app.use("/auth",userRoutes)
 app.use("/found",foundItemRoutes)
 app.use("/lost",lostItemRoutes)
