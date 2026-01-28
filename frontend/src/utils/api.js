@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'https://dropzone-3rfj.onrender.com', // Adjust if backend runs on different port
+    baseURL: 'https://dropzone-3rfj.onrender.com', 
     headers: {
         'Content-Type': 'application/json',
     },

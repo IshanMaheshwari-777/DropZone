@@ -6,8 +6,7 @@ import ItemCard from '@/components/ItemCard';
 import Link from 'next/link';
 
 export default function LostItemsPage() {
-    // Use same structure as FoundItemsPage but for lost
-    // Assuming fetchLostItems exists in store
+ 
     const { lostItems, fetchLostItems, lostLoading } = useStore();
 
     useEffect(() => {

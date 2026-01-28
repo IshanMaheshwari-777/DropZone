@@ -33,14 +33,6 @@ export default function ItemCard({ item, type }) {
     const isFound = type === 'found';
     const href = isFound ? `/found/${item._id}` : `/lost/${item._id}`;
 
-    // Use Cloudinary URL if available, otherwise fallback or local
-    // Backend now returns full URL in imagePath if it's Cloudinary, or relative path if local. 
-    // We need to handle relative path for legacy images if any, or just trust the URL.
-    // Ideally backend provides a full URL. For this implementation, we assume imagePath is usable as src.
-    // If imagePath starts with /, it's local. If http, it's Cloudinary.
-    // Next.js Image component needs configured domains or unoptimized for external. 
-    // We'll use unoptimized for simplicity with Cloudinary or add to config. 
-    // Actually, standard <img> is safer unless we config next.config.js. Let's use <img> for now or unoptimized Image.
 
     const imageUrl = item.imagePath
         ? (item.imagePath.startsWith('http') ? item.imagePath : `http://localhost:6001${item.imagePath}`)

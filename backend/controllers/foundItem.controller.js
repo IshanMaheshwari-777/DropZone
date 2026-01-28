@@ -9,15 +9,11 @@ export const createFoundItem = async (req, res) => {
     return res.status(400).json({ message: "Image is required" });
   }
 
-  // 1️⃣ Upload local file to Cloudinary
   const uploadResult = await cloudinary.uploader.upload(req.file.path, {
     folder: "dropzone/found-items",
   });
 
-  // 2️⃣ Delete ONLY the local temp file
-//   fs.unlinkSync(req.file.path);
 
-  // 3️⃣ Save Cloudinary URL in DB
   const foundItem = await FoundItem.create({
     postedBy: req.user._id,
     title,

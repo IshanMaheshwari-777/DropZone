@@ -197,7 +197,7 @@ export default function NewLostItemPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Image (Optional)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
                         <div
                             {...getRootProps()}
                             className={clsx(

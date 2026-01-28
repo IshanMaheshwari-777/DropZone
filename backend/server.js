@@ -20,8 +20,7 @@ const PORT = process.env.PORT || 6001;
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+
 app.use((req, res, next) => {
     req.id = uuidv4();
     next();
